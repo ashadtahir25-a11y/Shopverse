@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "652663329218",
+    "project_id": "shopverse-15a2c",
+    "storage_bucket": "shopverse-15a2c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:652663329218:android:0269dd6d0154a72d1ec65b",
+        "android_client_info": {
+          "package_name": "com.example.shopverse"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6Of3cbj7i-G9-S5oqKDN_mf7evRFe2S4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
