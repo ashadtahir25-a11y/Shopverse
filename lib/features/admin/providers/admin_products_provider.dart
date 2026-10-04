@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../product/models/product_model.dart';
 
@@ -25,12 +26,13 @@ class AdminProductsService {
   final _db = FirebaseFirestore.instance;
 
   /// Saves the product, then — if it's genuinely new or its price just
-  /// changed — fans a notification out to every customer's own
+  /// changed, AND customers can actually see it (status "published") —
+  /// fans a notification out to every user's own
   /// `users/{uid}/notifications` subcollection (that's how this
   /// project's Firestore Rules model notifications: per-user documents,
   /// `allow create: if isAdmin()`, `allow read/update: if isOwner`).
   /// Written once here by whichever admin made the change, rather than
-  /// each customer's device trying to detect the same change itself.
+  /// each device trying to detect the same change itself.
   Future<void> saveProduct(Product product) async {
     final isNew = product.id.isEmpty;
     final id = isNew ? _db.collection('products').doc().id : product.id;
@@ -43,23 +45,34 @@ class AdminProductsService {
 
     await _db.collection('products').doc(id).set(product.toFirestoreMap());
 
-    if (isNew) {
-      await _broadcastToCustomers(
-        type: 'newProduct',
-        title: 'New Arrival 🆕',
-        message: '${product.name} just landed — check it out.',
-        productId: id,
-      );
-    } else if (previousPrice != null && previousPrice != product.price) {
-      final dropped = product.price < previousPrice;
-      await _broadcastToCustomers(
-        type: dropped ? 'priceDrop' : 'priceIncrease',
-        title: dropped ? 'Price Drop 📉' : 'Price Update 📈',
-        message: dropped
-            ? '${product.name} is now Rs. ${product.price.toStringAsFixed(0)} (was Rs. ${previousPrice.toStringAsFixed(0)}).'
-            : '${product.name} is now Rs. ${product.price.toStringAsFixed(0)}.',
-        productId: id,
-      );
+    // A draft/archived product is invisible to shoppers, so announcing it
+    // (or its price) would just be noise.
+    if (product.status != 'published') return;
+
+    // The product is already saved at this point. A problem while sending
+    // notifications must NOT make the admin see "Could not save product",
+    // so failures here are logged and swallowed.
+    try {
+      if (isNew) {
+        await _broadcastToAllUsers(
+          type: 'newProduct',
+          title: 'New Arrival 🆕',
+          message: '${product.name} just landed — check it out.',
+          productId: id,
+        );
+      } else if (previousPrice != null && previousPrice != product.price) {
+        final dropped = product.price < previousPrice;
+        await _broadcastToAllUsers(
+          type: dropped ? 'priceDrop' : 'priceIncrease',
+          title: dropped ? 'Price Drop 📉' : 'Price Update 📈',
+          message: dropped
+              ? '${product.name} is now Rs. ${product.price.toStringAsFixed(0)} (was Rs. ${previousPrice.toStringAsFixed(0)}).'
+              : '${product.name} is now Rs. ${product.price.toStringAsFixed(0)}.',
+          productId: id,
+        );
+      }
+    } catch (e) {
+      debugPrint('Notification broadcast failed: $e');
     }
   }
 
@@ -73,32 +86,37 @@ class AdminProductsService {
     });
   }
 
-  /// Writes one notification document into every customer's own
+  /// Writes one notification document into every user's own
   /// `notifications` subcollection. Batched in chunks of 450 (Firestore
   /// caps a single batch at 500 writes) so this stays correct even for
-  /// a large customer base, not just small test stores.
-  Future<void> _broadcastToCustomers({
+  /// a large user base, not just small test stores.
+  ///
+  /// This deliberately targets ALL users rather than `role == 'customer'`:
+  /// the old role filter silently skipped (a) staff accounts — so an
+  /// admin testing from their own phone never saw anything — and (b) any
+  /// customer whose `role` field was missing or had a stray space/capital
+  /// letter. Blocked accounts are skipped (they can't sign in anyway).
+  Future<void> _broadcastToAllUsers({
     required String type,
     required String title,
     required String message,
     required String productId,
   }) async {
-    final customers = await _db
-        .collection('users')
-        .where('role', isEqualTo: 'customer')
-        .get();
-    if (customers.docs.isEmpty) return;
+    final snapshot = await _db.collection('users').get();
+    final recipients = snapshot.docs
+        .where((doc) => doc.data()['isBlocked'] != true)
+        .toList();
+    if (recipients.isEmpty) return;
 
     final timestamp = DateTime.now().toIso8601String();
     const chunkSize = 450;
 
-    for (var i = 0; i < customers.docs.length; i += chunkSize) {
+    for (var i = 0; i < recipients.length; i += chunkSize) {
       final batch = _db.batch();
-      final chunk = customers.docs.skip(i).take(chunkSize);
-      for (final customerDoc in chunk) {
+      for (final userDoc in recipients.skip(i).take(chunkSize)) {
         final notifRef = _db
             .collection('users')
-            .doc(customerDoc.id)
+            .doc(userDoc.id)
             .collection('notifications')
             .doc();
         batch.set(notifRef, {

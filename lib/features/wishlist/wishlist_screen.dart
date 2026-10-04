@@ -7,13 +7,15 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/routes/app_router.dart';
 import '../../core/widgets/product_card.dart';
 import 'providers/wishlist_provider.dart';
+import 'providers/live_wishlist_provider.dart';
 
 class WishlistScreen extends ConsumerWidget {
   const WishlistScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final wishlist = ref.watch(wishlistProvider);
+    // Live-priced view of the wishlist (see live_wishlist_provider.dart).
+    final wishlist = ref.watch(liveWishlistProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,

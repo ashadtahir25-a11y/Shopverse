@@ -34,7 +34,7 @@ class _CustomersContent extends ConsumerStatefulWidget {
 
 class _CustomersContentState extends ConsumerState<_CustomersContent> {
   final _searchController = TextEditingController();
-  bool _staffOnly = false;
+  _CustomerFilter _filter = _CustomerFilter.all;
 
   @override
   Widget build(BuildContext context) {
@@ -77,11 +77,25 @@ class _CustomersContentState extends ConsumerState<_CustomersContent> {
                         ),
                       ),
                     ),
-                    FilterChip(
-                      label: const Text('Staff only'),
-                      selected: _staffOnly,
-                      onSelected: (v) => setState(() => _staffOnly = v),
-                      selectedColor: AppColors.primaryLight,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(AppDimens.radiusMd),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<_CustomerFilter>(
+                          value: _filter,
+                          icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
+                          items: [
+                            for (final f in _CustomerFilter.values)
+                              DropdownMenuItem(value: f, child: Text(f.label)),
+                          ],
+                          onChanged: (f) => setState(() => _filter = f ?? _CustomerFilter.all),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -98,9 +112,11 @@ class _CustomersContentState extends ConsumerState<_CustomersContent> {
                     ),
                     data: (customers) {
                       var filtered = customers;
-                      if (_staffOnly) {
-                        filtered = filtered.where((c) => c.isStaff).toList();
-                      }
+                      filtered = switch (_filter) {
+                        _CustomerFilter.all => filtered,
+                        _CustomerFilter.staff => filtered.where((c) => c.isStaff).toList(),
+                        _CustomerFilter.customers => filtered.where((c) => !c.isStaff).toList(),
+                      };
                       if (query.isNotEmpty) {
                         filtered = filtered
                             .where(
@@ -141,6 +157,15 @@ class _CustomersContentState extends ConsumerState<_CustomersContent> {
       ),
     );
   }
+}
+
+enum _CustomerFilter {
+  all('All'),
+  staff('Staff'),
+  customers('Customers');
+
+  final String label;
+  const _CustomerFilter(this.label);
 }
 
 class _CustomerRow extends StatelessWidget {

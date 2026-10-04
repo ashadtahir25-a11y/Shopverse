@@ -13,6 +13,12 @@ import '../cart/providers/cart_provider.dart';
 import '../orders/providers/orders_provider.dart';
 import '../wishlist/providers/wishlist_provider.dart';
 import '../checkout/providers/address_provider.dart';
+import '../admin/widgets/admin_security_dialog.dart';
+import '../wishlist/wishlist_screen.dart';
+import 'screens/my_returns_screen.dart';
+import 'screens/my_reviews_screen.dart';
+import 'screens/payment_methods_screen.dart';
+import 'widgets/change_password_sheet.dart';
 import '../../core/widgets/glass_card.dart';
 import '../../core/widgets/surface_card.dart';
 import 'providers/user_profile_provider.dart';
@@ -22,14 +28,15 @@ class ProfileScreen extends ConsumerWidget {
 
   static const _menuItems = [
     (Icons.receipt_long_outlined, 'My Orders', '/orders'),
-    (Icons.favorite_border_rounded, 'Wishlist', null),
+    (Icons.favorite_border_rounded, 'Wishlist', 'WISHLIST'),
     (Icons.location_on_outlined, 'Addresses', '/checkout/address'),
-    (Icons.payment_outlined, 'Payment Methods', null),
+    (Icons.payment_outlined, 'Payment Methods', 'PAYMENTS'),
     (Icons.notifications_none_rounded, 'Notifications', '/notifications'),
-    (Icons.star_border_rounded, 'Reviews', null),
-    (Icons.assignment_return_outlined, 'Returns', null),
+    (Icons.star_border_rounded, 'Reviews', 'REVIEWS'),
+    (Icons.assignment_return_outlined, 'Returns', 'RETURNS'),
     (Icons.settings_outlined, 'Settings', '/settings'),
     (Icons.help_outline_rounded, 'Help & Support', '/help-support'),
+    (Icons.lock_outline_rounded, 'Change Password', 'PASSWORD'),
   ];
 
   static const _adminMenuItem = (
@@ -77,6 +84,38 @@ class ProfileScreen extends ConsumerWidget {
 
     if (!context.mounted) return;
     context.go(loggedOutRoute());
+  }
+
+  void _open(BuildContext context, Widget screen) {
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => screen));
+  }
+
+  /// Menu entries without a real route used to have `null` here, so
+  /// tapping them did nothing. Each now has an action key.
+  void _handleMenuTap(BuildContext context, WidgetRef ref, String? route, String role) {
+    if (route == null) return;
+    switch (route) {
+      case 'LOGOUT':
+        _handleLogout(context, ref);
+      case 'WISHLIST':
+        _open(context, const WishlistScreen());
+      case 'PAYMENTS':
+        _open(context, const PaymentMethodsScreen());
+      case 'REVIEWS':
+        _open(context, const MyReviewsScreen());
+      case 'RETURNS':
+        _open(context, const MyReturnsScreen());
+      case 'PASSWORD':
+        // The admin account changes its password through the
+        // personal-key protected flow; everyone else uses the sheet.
+        if (role == 'admin') {
+          showAdminSecurityDialog(context);
+        } else {
+          showChangePasswordSheet(context);
+        }
+      default:
+        context.push(route);
+    }
   }
 
   @override
@@ -242,13 +281,12 @@ class ProfileScreen extends ConsumerWidget {
                                   size: 18,
                                   color: AppColors.textMuted,
                                 ),
-                                onTap: () {
-                                  if (route == 'LOGOUT') {
-                                    _handleLogout(context, ref);
-                                  } else if (route != null) {
-                                    context.push(route);
-                                  }
-                                },
+                                onTap: () => _handleMenuTap(
+                                  context,
+                                  ref,
+                                  route,
+                                  profile.role,
+                                ),
                               )
                               .animate()
                               .fadeIn(delay: (i * 30).ms, duration: 250.ms)

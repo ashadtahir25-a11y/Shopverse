@@ -9,6 +9,7 @@ import '../../../core/data/auth_repository.dart';
 import '../../../core/routes/app_router.dart';
 import '../../profile/providers/user_profile_provider.dart';
 import '../providers/admin_permissions.dart';
+import 'admin_security_dialog.dart';
 import '../providers/admin_section_routes.dart';
 
 const Map<String, IconData> _sectionIcons = {
@@ -57,9 +58,9 @@ class AdminShell extends ConsumerWidget {
       final overflow = sections.skip(_primaryTabCount).toList();
       final hasOverflow = overflow.isNotEmpty;
 
-      // -1 means the active section isn't one of the primary tabs (it
-      // lives behind "More"), in which case the "More" tab is the one
-      // that gets highlighted below.
+      // If the active section isn't one of the primary tabs, the bottom
+      // nav has nothing selected — that's fine (it just shows unselected
+      // state) rather than wrongly highlighting an unrelated tab.
       final activeIndex = primary.indexOf(activeLabel);
 
       return Scaffold(
@@ -87,6 +88,7 @@ class AdminShell extends ConsumerWidget {
             activeLabel: activeLabel,
             sections: sections,
             profileName: profile.name,
+            isAdmin: profile.role == 'admin',
           ),
         ),
         body: child,
@@ -102,39 +104,39 @@ class AdminShell extends ConsumerWidget {
             ? null
             : Builder(
                 builder: (scaffoldContext) => BottomNavigationBar(
-                  // A section that lives behind "More" (e.g. Customers)
-                  // highlights the "More" tab — it used to fall back to
-                  // index 0 and wrongly light up "Dashboard".
-                  currentIndex: activeIndex >= 0
-                      ? activeIndex
-                      : (hasOverflow ? primary.length : 0),
-                  type: BottomNavigationBarType.fixed,
-                  backgroundColor: const Color(0xFF1A1A2E),
-                  selectedItemColor: Colors.white,
-                  unselectedItemColor: Colors.white54,
-                  onTap: (i) {
-                    if (i < primary.length) {
-                      final route = kAdminSectionRoutes[primary[i]];
-                      if (route != null) context.go(route);
-                    } else {
-                      // The "More" tab — open the drawer rather than
-                      // duplicating the overflow list in a second widget.
-                      Scaffold.of(scaffoldContext).openDrawer();
-                    }
-                  },
-                  items: [
-                    ...primary.map(
-                      (s) => BottomNavigationBarItem(
-                        icon: Icon(_sectionIcons[s]),
-                        label: s,
-                      ),
+                // A section that lives behind "More" (e.g. Customers)
+                // highlights the "More" tab — it used to fall back to
+                // index 0 and wrongly light up "Dashboard".
+                currentIndex: activeIndex >= 0
+                    ? activeIndex
+                    : (hasOverflow ? primary.length : 0),
+                type: BottomNavigationBarType.fixed,
+                backgroundColor: const Color(0xFF1A1A2E),
+                selectedItemColor: Colors.white,
+                unselectedItemColor: Colors.white54,
+                onTap: (i) {
+                  if (i < primary.length) {
+                    final route = kAdminSectionRoutes[primary[i]];
+                    if (route != null) context.go(route);
+                  } else {
+                    // The "More" tab — open the drawer rather than
+                    // duplicating the overflow list in a second widget.
+                    Scaffold.of(scaffoldContext).openDrawer();
+                  }
+                },
+                items: [
+                  ...primary.map(
+                    (s) => BottomNavigationBarItem(
+                      icon: Icon(_sectionIcons[s]),
+                      label: s,
                     ),
-                    if (hasOverflow)
-                      const BottomNavigationBarItem(
-                        icon: Icon(Icons.more_horiz_rounded),
-                        label: 'More',
-                      ),
-                  ],
+                  ),
+                  if (hasOverflow)
+                    const BottomNavigationBarItem(
+                      icon: Icon(Icons.more_horiz_rounded),
+                      label: 'More',
+                    ),
+                ],
                 ),
               ),
       );
@@ -152,6 +154,7 @@ class AdminShell extends ConsumerWidget {
                 activeLabel: activeLabel,
                 sections: sections,
                 profileName: profile.name,
+                isAdmin: profile.role == 'admin',
               ),
             ),
           ),
@@ -166,11 +169,13 @@ class _SidebarContent extends StatelessWidget {
   final String activeLabel;
   final List<String> sections;
   final String profileName;
+  final bool isAdmin;
 
   const _SidebarContent({
     required this.activeLabel,
     required this.sections,
     required this.profileName,
+    this.isAdmin = false,
   });
 
   @override
@@ -286,6 +291,14 @@ class _SidebarContent extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             child: Column(
               children: [
+                // Only the admin account gets the personal-key protected
+                // password change (see admin_security_dialog.dart).
+                if (isAdmin)
+                  _SidebarActionTile(
+                    icon: Icons.lock_outline_rounded,
+                    label: 'Security',
+                    onTap: () => showAdminSecurityDialog(context),
+                  ),
                 _SidebarActionTile(
                   icon: Icons.storefront_outlined,
                   label: 'View Store',
