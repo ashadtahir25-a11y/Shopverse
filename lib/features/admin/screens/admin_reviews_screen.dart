@@ -17,8 +17,9 @@ class AdminReviewsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const AdminGuard(
-      child: AdminShell(activeLabel: 'Reviews', child: _ReviewsContent()),
+    return AdminGuard(
+      section: 'Reviews',
+      child: const AdminShell(activeLabel: 'Reviews', child: _ReviewsContent()),
     );
   }
 }

@@ -37,6 +37,7 @@ class _AppTextFieldState extends State<AppTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final isMultiline = !widget.isPassword && widget.maxLines > 1;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -55,9 +56,31 @@ class _AppTextFieldState extends State<AppTextField> {
           enabled: widget.enabled,
           style: AppTextStyles.bodyLarge,
           decoration: InputDecoration(
+            alignLabelWithHint: isMultiline,
             hintText: widget.hint,
             prefixIcon: widget.prefixIcon != null
-                ? Icon(widget.prefixIcon, size: 20, color: AppColors.textMuted)
+                ? (isMultiline
+                      // Multi-line fields (e.g. Address): pin the icon to
+                      // the first line, next to the hint text, instead of
+                      // floating in the vertical middle of the box.
+                      ? Align(
+                          alignment: Alignment.topCenter,
+                          widthFactor: 1.0,
+                          heightFactor: 1.0,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 14),
+                            child: Icon(
+                              widget.prefixIcon,
+                              size: 20,
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                        )
+                      : Icon(
+                          widget.prefixIcon,
+                          size: 20,
+                          color: AppColors.textMuted,
+                        ))
                 : null,
             suffixIcon: widget.isPassword
                 ? IconButton(

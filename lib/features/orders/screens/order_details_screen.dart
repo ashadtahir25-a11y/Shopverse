@@ -9,6 +9,7 @@ import '../../../core/widgets/product_card.dart';
 import '../models/order_model.dart';
 import '../providers/orders_provider.dart';
 import '../widgets/order_status_badge.dart';
+import '../widgets/receipt_generator.dart';
 
 const _cancelReasons = [
   'Changed my mind',
@@ -107,7 +108,26 @@ class OrderDetailsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: Text(order.orderNumber)),
+      appBar: AppBar(
+        title: Text(order.orderNumber),
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.receipt_long_outlined),
+            tooltip: 'Receipt',
+            onSelected: (value) {
+              if (value == 'share') {
+                shareOrderReceipt(order);
+              } else if (value == 'print') {
+                printOrderReceipt(order);
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: 'share', child: Text('Share Receipt')),
+              PopupMenuItem(value: 'print', child: Text('Print / Save as PDF')),
+            ],
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(AppDimens.md),
         children: [

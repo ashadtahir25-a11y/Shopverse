@@ -15,8 +15,9 @@ class AdminCouponsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const AdminGuard(
-      child: AdminShell(activeLabel: 'Coupons', child: _CouponsContent()),
+    return AdminGuard(
+      section: 'Coupons',
+      child: const AdminShell(activeLabel: 'Coupons', child: _CouponsContent()),
     );
   }
 }

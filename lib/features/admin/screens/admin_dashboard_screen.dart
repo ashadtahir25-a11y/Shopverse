@@ -8,14 +8,19 @@ import '../../profile/providers/user_profile_provider.dart';
 import '../providers/admin_stats_provider.dart';
 import '../widgets/admin_guard.dart';
 import '../widgets/admin_shell.dart';
+import '../widgets/sales_chart.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const AdminGuard(
-      child: AdminShell(activeLabel: 'Dashboard', child: _DashboardContent()),
+    return AdminGuard(
+      section: 'Dashboard',
+      child: const AdminShell(
+        activeLabel: 'Dashboard',
+        child: _DashboardContent(),
+      ),
     );
   }
 }
@@ -148,43 +153,7 @@ class _DashboardContent extends ConsumerWidget {
                 ),
 
                 const SizedBox(height: AppDimens.xl),
-                SurfaceCard(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppDimens.lg),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.info_outline_rounded,
-                              color: AppColors.primary,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'More to come',
-                              style: AppTextStyles.bodyLarge.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Product management, order management, customer management, coupons, '
-                          'reviews moderation, returns processing, and sales charts are being built '
-                          'out incrementally — this dashboard already reflects live data from '
-                          'Firestore and will grow section by section.',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.textSecondary,
-                            height: 1.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                const SalesChartCard(),
               ],
             ),
           );

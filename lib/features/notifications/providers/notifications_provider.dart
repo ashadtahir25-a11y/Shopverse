@@ -1,50 +1,104 @@
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/config/firebase_config.dart';
 import '../models/notification_model.dart';
 
-final List<AppNotification> _seedNotifications = [
-  AppNotification(
-    id: 'n1',
-    type: NotificationType.promotion,
-    title: 'Season Sale is Live! 🎉',
-    message: 'Up to 40% off on electronics. Limited time only.',
-    timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-  ),
-  AppNotification(
-    id: 'n2',
-    type: NotificationType.priceDrop,
-    title: 'Price Drop Alert',
-    message: 'AeroFit Wireless Headphones just dropped by 15%.',
-    timestamp: DateTime.now().subtract(const Duration(hours: 6)),
-  ),
-  AppNotification(
-    id: 'n3',
-    type: NotificationType.wishlistAvailable,
-    title: 'Back in Stock',
-    message: 'An item in your wishlist is available again.',
-    timestamp: DateTime.now().subtract(const Duration(days: 1)),
-    read: true,
-  ),
-];
-
+/// Manages the signed-in customer's own notifications, synced with
+/// Firestore (`users/{uid}/notifications/{id}`) — same auth-listening
+/// pattern as Cart/Wishlist/Orders. Each customer has their own copy of
+/// every notification they've received (written by an admin action —
+/// see AdminProductsService.saveProduct's fan-out), so "read" is a
+/// normal Firestore field here, kept in sync across devices.
 class NotificationsNotifier extends StateNotifier<List<AppNotification>> {
-  NotificationsNotifier() : super(_seedNotifications);
-
-  void add(AppNotification notification) {
-    state = [notification, ...state];
+  NotificationsNotifier() : super([]) {
+    _listenToAuth();
   }
 
-  void markAsRead(String id) {
-    state = [for (final n in state) if (n.id == id) n.copyWith(read: true) else n];
+  StreamSubscription<User?>? _authSub;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _notifSub;
+  String? _uid;
+
+  void _listenToAuth() {
+    if (!FirebaseStatus.isInitialized) {
+      return;
+    }
+    _authSub = FirebaseAuth.instance.authStateChanges().listen((user) {
+      _notifSub?.cancel();
+      _uid = user?.uid;
+
+      if (user == null) {
+        state = [];
+        return;
+      }
+
+      _notifSub = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('notifications')
+          .orderBy('timestamp', descending: true)
+          .limit(50)
+          .snapshots()
+          .listen((snapshot) {
+            state = snapshot.docs
+                .map((doc) => AppNotification.fromFirestore(doc.id, doc.data()))
+                .toList();
+          });
+    });
   }
 
-  void markAllAsRead() {
+  Future<void> markAsRead(String id) async {
+    state = [
+      for (final n in state)
+        if (n.id == id) n.copyWith(read: true) else n,
+    ];
+
+    if (!FirebaseStatus.isInitialized || _uid == null) {
+      return;
+    }
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_uid)
+          .collection('notifications')
+          .doc(id)
+          .update({'read': true});
+    } catch (_) {}
+  }
+
+  Future<void> markAllAsRead() async {
+    final unreadIds = state.where((n) => !n.read).map((n) => n.id).toList();
     state = [for (final n in state) n.copyWith(read: true)];
+
+    if (!FirebaseStatus.isInitialized || _uid == null || unreadIds.isEmpty) {
+      return;
+    }
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+      final col = FirebaseFirestore.instance
+          .collection('users')
+          .doc(_uid)
+          .collection('notifications');
+      for (final id in unreadIds) {
+        batch.update(col.doc(id), {'read': true});
+      }
+      await batch.commit();
+    } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    _notifSub?.cancel();
+    super.dispose();
   }
 }
 
-final notificationsProvider = StateNotifierProvider<NotificationsNotifier, List<AppNotification>>(
-  (ref) => NotificationsNotifier(),
-);
+final notificationsProvider =
+    StateNotifierProvider<NotificationsNotifier, List<AppNotification>>(
+      (ref) => NotificationsNotifier(),
+    );
 
 final unreadNotificationCountProvider = Provider<int>((ref) {
   return ref.watch(notificationsProvider).where((n) => !n.read).length;

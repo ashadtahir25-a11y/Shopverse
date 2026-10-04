@@ -204,7 +204,13 @@ class _CartItemTile extends ConsumerWidget {
               size: 20,
               color: AppColors.textMuted,
             ),
-            onPressed: () => notifier.remove(item.id),
+            onPressed: () {
+              // A leftover "Added to cart — View Cart" toast makes no
+              // sense once the item it referred to is gone (or while
+              // already on the cart screen), so dismiss it on removal.
+              ScaffoldMessenger.of(context).clearSnackBars();
+              notifier.remove(item.id);
+            },
           ),
         ],
       ),

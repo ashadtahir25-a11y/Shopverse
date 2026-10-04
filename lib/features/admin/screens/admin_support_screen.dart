@@ -15,8 +15,9 @@ class AdminSupportScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const AdminGuard(
-      child: AdminShell(activeLabel: 'Support', child: _SupportContent()),
+    return AdminGuard(
+      section: 'Support',
+      child: const AdminShell(activeLabel: 'Support', child: _SupportContent()),
     );
   }
 }

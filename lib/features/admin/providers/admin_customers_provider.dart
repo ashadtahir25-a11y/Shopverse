@@ -13,6 +13,20 @@ const kAvailableRoles = [
   'admin',
 ];
 
+/// Roles are always plain lowercase letters/underscores (see
+/// [kAvailableRoles]). A value typed or pasted by hand into the Firebase
+/// Console can pick up a trailing space/newline or odd casing —
+/// "customer " != "customer", which made a normal customer look like
+/// staff in the list (showing a stretched role badge). Stripping
+/// everything outside [a-z_] makes the check tolerant of that.
+String _normalizeRole(Object? raw) {
+  final cleaned = (raw is String ? raw : '').toLowerCase().replaceAll(
+    RegExp(r'[^a-z_]'),
+    '',
+  );
+  return kAvailableRoles.contains(cleaned) ? cleaned : 'customer';
+}
+
 class AdminCustomer {
   final String uid;
   final String name;
@@ -46,7 +60,7 @@ class AdminCustomer {
       name: data['fullName'] as String? ?? 'Unnamed',
       email: data['email'] as String? ?? '',
       phone: data['phone'] as String? ?? '',
-      role: data['role'] as String? ?? 'customer',
+      role: _normalizeRole(data['role']),
       isBlocked: data['isBlocked'] as bool? ?? false,
       avatarUrl: data['avatarUrl'] as String?,
       createdAt: createdAt,

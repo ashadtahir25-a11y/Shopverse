@@ -15,8 +15,12 @@ class AdminCategoriesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const AdminGuard(
-      child: AdminShell(activeLabel: 'Categories', child: _CategoriesContent()),
+    return AdminGuard(
+      section: 'Categories',
+      child: const AdminShell(
+        activeLabel: 'Categories',
+        child: _CategoriesContent(),
+      ),
     );
   }
 }

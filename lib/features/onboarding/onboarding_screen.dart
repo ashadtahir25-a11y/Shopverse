@@ -41,13 +41,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Align(
               alignment: Alignment.topRight,
               child: Padding(
-                padding: const EdgeInsets.only(right: AppDimens.md, top: AppDimens.sm),
+                padding: const EdgeInsets.only(
+                  right: AppDimens.md,
+                  top: AppDimens.sm,
+                ),
                 child: TextButton(
                   onPressed: _isLast ? null : _completeOnboarding,
                   child: Text(
                     AppStrings.skip,
                     style: AppTextStyles.bodyMedium.copyWith(
-                      color: _isLast ? Colors.transparent : AppColors.textSecondary,
+                      color: _isLast
+                          ? Colors.transparent
+                          : AppColors.textSecondary,
                     ),
                   ),
                 ),
@@ -60,63 +65,116 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 onPageChanged: (i) => setState(() => _currentIndex = i),
                 itemBuilder: (context, index) {
                   final page = onboardingPages[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppDimens.lg),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 260,
-                          height: 260,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(48),
-                            boxShadow: [
-                              BoxShadow(
-                                color: page.gradient.last.withValues(alpha: 0.3),
-                                blurRadius: 30,
-                                offset: const Offset(0, 16),
-                              ),
+                  // LayoutBuilder + scroll view: on short phones or with a
+                  // large system font the fixed 260px illustration plus the
+                  // text used to overflow the page (yellow/black stripes).
+                  // Now the illustration shrinks to fit, and as a last
+                  // resort the page itself can scroll.
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      final art = (constraints.maxHeight * 0.42)
+                          .clamp(150.0, 260.0)
+                          .toDouble();
+                      return SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimens.lg,
+                        ),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                    width: art,
+                                    height: art,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(48),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: page.gradient.last.withValues(
+                                            alpha: 0.3,
+                                          ),
+                                          blurRadius: 30,
+                                          offset: const Offset(0, 16),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(48),
+                                      child: Stack(
+                                        fit: StackFit.expand,
+                                        children: [
+                                          DecoratedBox(
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: page.gradient,
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              ),
+                                            ),
+                                            child: Center(
+                                              child: Icon(
+                                                page.icon,
+                                                color: Colors.white,
+                                                size: art * 0.35,
+                                              ),
+                                            ),
+                                          ),
+                                          Positioned(
+                                            bottom: 14,
+                                            right: 14,
+                                            child: Container(
+                                              width: 44,
+                                              height: 44,
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(14),
+                                              ),
+                                              child: Icon(
+                                                page.icon,
+                                                color: page.gradient.last,
+                                                size: 22,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                  .animate()
+                                  .fadeIn(duration: 400.ms)
+                                  .scale(
+                                    begin: const Offset(0.9, 0.9),
+                                    curve: Curves.easeOutBack,
+                                  ),
+                              const SizedBox(height: AppDimens.xl),
+                              Text(
+                                    page.title,
+                                    textAlign: TextAlign.center,
+                                    style: AppTextStyles.h2,
+                                  )
+                                  .animate()
+                                  .fadeIn(delay: 150.ms, duration: 350.ms)
+                                  .slideY(begin: 0.2, end: 0),
+                              const SizedBox(height: AppDimens.sm),
+                              Text(
+                                    page.description,
+                                    textAlign: TextAlign.center,
+                                    style: AppTextStyles.bodyLarge.copyWith(
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  )
+                                  .animate()
+                                  .fadeIn(delay: 250.ms, duration: 350.ms)
+                                  .slideY(begin: 0.2, end: 0),
                             ],
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(48),
-                            child: Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(colors: page.gradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
-                                  ),
-                                  child: Center(child: Icon(page.icon, color: Colors.white, size: 90)),
-                                ),
-                                Positioned(
-                                  bottom: 14,
-                                  right: 14,
-                                  child: Container(
-                                    width: 44,
-                                    height: 44,
-                                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
-                                    child: Icon(page.icon, color: page.gradient.last, size: 22),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ).animate().fadeIn(duration: 400.ms).scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack),
-                        const SizedBox(height: AppDimens.xl),
-                        Text(
-                          page.title,
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.h2,
-                        ).animate().fadeIn(delay: 150.ms, duration: 350.ms).slideY(begin: 0.2, end: 0),
-                        const SizedBox(height: AppDimens.sm),
-                        Text(
-                          page.description,
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.bodyLarge.copyWith(color: AppColors.textSecondary),
-                        ).animate().fadeIn(delay: 250.ms, duration: 350.ms).slideY(begin: 0.2, end: 0),
-                      ],
-                    ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),

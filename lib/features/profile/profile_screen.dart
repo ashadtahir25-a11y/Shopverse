@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/routes/app_router.dart';
+import '../../core/config/app_flow.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_dimens.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -76,7 +76,7 @@ class ProfileScreen extends ConsumerWidget {
     ref.read(addressProvider.notifier).clear();
 
     if (!context.mounted) return;
-    context.go(AppRoutes.login);
+    context.go(loggedOutRoute());
   }
 
   @override

@@ -16,8 +16,9 @@ class AdminOrdersScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const AdminGuard(
-      child: AdminShell(activeLabel: 'Orders', child: _OrdersContent()),
+    return AdminGuard(
+      section: 'Orders',
+      child: const AdminShell(activeLabel: 'Orders', child: _OrdersContent()),
     );
   }
 }

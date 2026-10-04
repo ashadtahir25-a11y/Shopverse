@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/config/firebase_config.dart';
 import '../../../core/data/auth_repository.dart';
 import '../../../core/routes/app_router.dart';
@@ -39,6 +40,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // Defaults to 'customer' so the non-Firebase dev fallback and the
+      // "uid is somehow null" edge case still have a safe value to read
+      // below, instead of needing a separate redirect path for them.
+      String role = 'customer';
       if (FirebaseStatus.isInitialized) {
         final credential = await authRepository.login(
           email: _identifierController.text.trim(),
@@ -75,6 +80,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             return;
           }
 
+          // Read directly off the Firestore doc we already have in hand
+          // rather than from userProfileProvider — its own listener
+          // updates asynchronously and might not have the fresh role
+          // in yet at this exact moment.
+          role = ((data?['role'] as String?) ?? 'customer')
+              .trim()
+              .toLowerCase();
+
           ref
               .read(userProfileProvider.notifier)
               .update(
@@ -85,6 +98,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 email:
                     credential.user?.email ?? _identifierController.text.trim(),
                 phone: data?['phone'] as String? ?? '',
+                avatarUrl: data?['avatarUrl'] as String?,
+                role: role,
               );
         }
       } else {
@@ -94,14 +109,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted) {
         return;
       }
-      context.go(AppRoutes.home);
+      // Remember the "Remember me" choice. Firebase keeps the session
+      // on the device by itself; the splash screen reads this flag at
+      // the next app start and signs the user out if it was unticked.
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('remember_me', _rememberMe);
+      if (!mounted) {
+        return;
+      }
+
+      // Staff accounts land on the Admin Dashboard first; customers go
+      // straight to the store.
+      if (role != 'customer') {
+        context.go(AppRoutes.admin);
+      } else {
+        context.go(AppRoutes.home);
+      }
     } on FirebaseAuthException catch (e) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.message ?? 'Login failed')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(
+                Icons.error_outline_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Expanded(child: Text(_friendlyAuthError(e.code))),
+            ],
+          ),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
     } catch (e) {
       if (!mounted) {
         return;
@@ -370,5 +417,27 @@ class _SocialButton extends StatelessWidget {
         foregroundColor: AppColors.textPrimary,
       ),
     );
+  }
+}
+
+/// Firebase Auth returns technical codes like "invalid-credential" — this
+/// maps the common ones to messages a customer can actually act on,
+/// instead of showing Firebase's raw internal wording.
+String _friendlyAuthError(String code) {
+  switch (code) {
+    case 'user-not-found':
+    case 'wrong-password':
+    case 'invalid-credential':
+      return 'Incorrect email or password. Please try again.';
+    case 'invalid-email':
+      return 'Please enter a valid email address.';
+    case 'user-disabled':
+      return 'This account has been disabled. Contact support.';
+    case 'too-many-requests':
+      return 'Too many attempts. Please wait a moment and try again.';
+    case 'network-request-failed':
+      return 'Network error. Please check your internet connection.';
+    default:
+      return 'Login failed. Please try again.';
   }
 }

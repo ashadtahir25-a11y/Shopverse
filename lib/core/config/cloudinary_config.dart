@@ -15,14 +15,19 @@
 class CloudinaryConfig {
   CloudinaryConfig._();
 
+  // Defaults are this project's real cloud name + UNSIGNED upload preset,
+  // so a plain `flutter run` works too (not only run.bat with
+  // --dart-define flags). Neither value is a secret: an unsigned preset
+  // can only upload, never delete/modify. Passing --dart-define still
+  // overrides these.
   static const String cloudName = String.fromEnvironment(
     'CLOUDINARY_CLOUD_NAME',
-    defaultValue: 'YOUR-CLOUD-NAME',
+    defaultValue: 'dzraszfj2',
   );
 
   static const String uploadPreset = String.fromEnvironment(
     'CLOUDINARY_UPLOAD_PRESET',
-    defaultValue: 'YOUR-UPLOAD-PRESET',
+    defaultValue: 'Shopsphre',
   );
 
   static bool get isConfigured => !cloudName.contains('YOUR-CLOUD-NAME') && !uploadPreset.contains('YOUR-UPLOAD-PRESET');

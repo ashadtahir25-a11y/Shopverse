@@ -225,6 +225,10 @@ class _HeaderIconButton extends StatelessWidget {
       child: Container(
         width: 42,
         height: 42,
+        // Without this the Container hands its child TIGHT 42x42
+        // constraints, so the badge's Stack pinned the icon to the
+        // top-left corner instead of the middle of the button.
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(12),

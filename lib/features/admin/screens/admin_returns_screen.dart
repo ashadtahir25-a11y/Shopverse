@@ -16,8 +16,9 @@ class AdminReturnsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const AdminGuard(
-      child: AdminShell(activeLabel: 'Returns', child: _ReturnsContent()),
+    return AdminGuard(
+      section: 'Returns',
+      child: const AdminShell(activeLabel: 'Returns', child: _ReturnsContent()),
     );
   }
 }

@@ -100,7 +100,12 @@ class UserProfileNotifier extends StateNotifier<UserProfile> {
               phone: data?['phone'] as String? ?? '',
               avatarUrl: data?['avatarUrl'] as String?,
               avatarSeed: user.uid,
-              role: data?['role'] as String? ?? 'customer',
+              // Same cleanup as splash/login so a stray space or capital
+              // letter typed into the Firebase Console can't make this
+              // listener disagree with the role they already applied.
+              role: ((data?['role'] as String?) ?? 'customer')
+                  .trim()
+                  .toLowerCase(),
             );
           });
     });
@@ -111,12 +116,24 @@ class UserProfileNotifier extends StateNotifier<UserProfile> {
   /// real source of truth and will reconcile shortly after (or
   /// immediately, if Firebase isn't configured yet — see
   /// firebase/FIREBASE_SETUP.md — in which case this IS the only state).
-  void update({String? name, String? email, String? phone, String? avatarUrl}) {
+  void update({
+    String? name,
+    String? email,
+    String? phone,
+    String? avatarUrl,
+    String? role,
+  }) {
+    // `role` is accepted here (not only via the Firestore listener) so
+    // that right after login / app start — when the role is already
+    // known from the user document we just fetched — AdminGuard sees
+    // the correct role immediately instead of briefly showing
+    // "Admin access required" while the listener catches up.
     state = state.copyWith(
       name: name,
       email: email,
       phone: phone,
       avatarUrl: avatarUrl,
+      role: role,
     );
   }
 

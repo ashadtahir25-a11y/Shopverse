@@ -15,8 +15,12 @@ class AdminCustomersScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const AdminGuard(
-      child: AdminShell(activeLabel: 'Customers', child: _CustomersContent()),
+    return AdminGuard(
+      section: 'Customers',
+      child: const AdminShell(
+        activeLabel: 'Customers',
+        child: _CustomersContent(),
+      ),
     );
   }
 }
@@ -194,6 +198,8 @@ class _CustomerRow extends StatelessWidget {
                   ),
                   child: Text(
                     'Blocked',
+                    maxLines: 1,
+                    softWrap: false,
                     style: AppTextStyles.caption.copyWith(
                       color: AppColors.error,
                       fontWeight: FontWeight.w700,
@@ -211,8 +217,14 @@ class _CustomerRow extends StatelessWidget {
                     color: AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(20),
                   ),
+                  // maxLines/softWrap: a badge must never wrap onto a
+                  // second line — that's what stretched it into a tall
+                  // pill on narrow phone screens.
                   child: Text(
-                    customer.role,
+                    _prettyRole(customer.role),
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.ellipsis,
                     style: AppTextStyles.caption.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w700,
@@ -232,3 +244,10 @@ class _CustomerRow extends StatelessWidget {
     );
   }
 }
+
+/// "support_staff" -> "Support Staff" (raw role ids look like code in the UI).
+String _prettyRole(String role) => role
+    .split('_')
+    .where((w) => w.isNotEmpty)
+    .map((w) => w[0].toUpperCase() + w.substring(1))
+    .join(' ');

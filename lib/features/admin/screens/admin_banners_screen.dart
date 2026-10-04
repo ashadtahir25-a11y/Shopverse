@@ -15,8 +15,9 @@ class AdminBannersScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const AdminGuard(
-      child: AdminShell(activeLabel: 'Banners', child: _BannersContent()),
+    return AdminGuard(
+      section: 'Banners',
+      child: const AdminShell(activeLabel: 'Banners', child: _BannersContent()),
     );
   }
 }

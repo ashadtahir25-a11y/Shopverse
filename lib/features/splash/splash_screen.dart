@@ -1,23 +1,33 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/config/firebase_config.dart';
 import '../../core/routes/app_router.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/aurora_background.dart';
 import '../../core/widgets/glass_card.dart';
+import '../../core/config/app_flow.dart';
+import '../profile/providers/user_profile_provider.dart';
 
 const _kOnboardingSeenKey = 'onboarding_seen';
-const _kAuthTokenKey = 'auth_token';
+const _kRememberMeKey = 'remember_me';
 
-class SplashScreen extends StatefulWidget {
+/// Minimum time the splash stays on screen, so the logo animation can
+/// finish even when the session check completes instantly.
+const _kMinSplash = Duration(milliseconds: 1800);
+
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulseController;
 
@@ -34,20 +44,118 @@ class _SplashScreenState extends State<SplashScreen>
     _bootstrap();
   }
 
+  /// Decides where to go next. The session check and the minimum splash
+  /// time run side by side, so the splash never lasts longer than it
+  /// has to — and it can never get stuck: every failure path falls
+  /// through to a sensible screen instead of hanging here.
   Future<void> _bootstrap() async {
-    final prefs = await SharedPreferences.getInstance();
-    final onboardingSeen = prefs.getBool(_kOnboardingSeenKey) ?? false;
-    final hasToken = prefs.getString(_kAuthTokenKey) != null;
+    final minSplash = Future<void>.delayed(_kMinSplash);
 
-    await Future.delayed(const Duration(milliseconds: 2000));
+    var destination = AppRoutes.login;
+    String? notice;
+    try {
+      final result = await _resolveDestination();
+      destination = result.route;
+      notice = result.notice;
+    } catch (_) {
+      // Anything unexpected -> fall back to the login screen.
+    }
+
+    await minSplash;
     if (!mounted) return;
 
-    if (!onboardingSeen) {
-      context.go(AppRoutes.onboarding);
-    } else if (hasToken) {
-      context.go(AppRoutes.home);
-    } else {
-      context.go(AppRoutes.login);
+    final messenger = ScaffoldMessenger.of(context);
+    context.go(destination);
+    if (notice != null) {
+      messenger.showSnackBar(SnackBar(content: Text(notice)));
+    }
+  }
+
+  Future<({String route, String? notice})> _resolveDestination() async {
+    final prefs = await SharedPreferences.getInstance();
+    final onboardingSeen = prefs.getBool(_kOnboardingSeenKey) ?? false;
+    // Defaults to true so existing sessions keep working; only an
+    // explicit "Remember me" untick on the login screen turns it off.
+    final rememberMe = prefs.getBool(_kRememberMeKey) ?? true;
+
+    if (FirebaseStatus.isInitialized) {
+      // Firebase Auth stores the session on the device by itself. On
+      // mobile `currentUser` is normally ready straight away; the stream
+      // read is a safety net for platforms that restore it a moment
+      // later. (The old code looked for an "auth_token" preference that
+      // nothing ever saved — so every launch ended up on Login.)
+      var user = FirebaseAuth.instance.currentUser;
+      user ??= await FirebaseAuth.instance.authStateChanges().first.timeout(
+        const Duration(seconds: 3),
+        onTimeout: () => null,
+      );
+
+      if (user != null) {
+        if (!rememberMe) {
+          await FirebaseAuth.instance.signOut();
+          // Reset so a stale `false` can't sign out a later account.
+          await prefs.remove(_kRememberMeKey);
+        } else {
+          return _routeForSignedInUser(user);
+        }
+      }
+    }
+
+// Not signed in: start the login process. By default that begins
+    // with the intro screens every time (see kShowOnboardingBeforeLogin).
+    return (
+      route: loggedOutRoute(onboardingSeen: onboardingSeen),
+      notice: null,
+    );
+  }
+
+  Future<({String route, String? notice})> _routeForSignedInUser(
+    User user,
+  ) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get()
+          .timeout(const Duration(seconds: 6));
+      final data = doc.data();
+
+      // Enforce "Block Account" for already-signed-in users too — the
+      // login screen only checks this at the moment of typing a password.
+      if (data?['isBlocked'] == true) {
+        await FirebaseAuth.instance.signOut();
+        return (
+          route: AppRoutes.login,
+          notice: 'This account has been blocked. Please contact support.',
+        );
+      }
+
+      final role = ((data?['role'] as String?) ?? 'customer')
+          .trim()
+          .toLowerCase();
+
+      // `ref` must not be used once this widget is gone.
+      if (!mounted) return (route: AppRoutes.home, notice: null);
+
+      ref
+          .read(userProfileProvider.notifier)
+          .update(
+            name: data?['fullName'] as String? ?? user.displayName ?? 'User',
+            email: user.email ?? (data?['email'] as String? ?? ''),
+            phone: data?['phone'] as String? ?? '',
+            avatarUrl: data?['avatarUrl'] as String?,
+            role: role,
+          );
+
+      // Staff land on the Admin Dashboard, customers on the store.
+      return (
+        route: role == 'customer' ? AppRoutes.home : AppRoutes.admin,
+        notice: null,
+      );
+    } catch (_) {
+      // Offline or slow network: keep the user signed in and let them
+      // in — the profile listener fills in the rest once it connects.
+      return (route: AppRoutes.home, notice: null);
     }
   }
 

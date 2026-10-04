@@ -61,16 +61,53 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     ref
         .read(cartProvider.notifier)
         .add(product, _selectedVariantLabels, quantity: _quantity);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Added ${product.name} to cart'),
-        action: SnackBarAction(
-          label: 'View Cart',
-          textColor: Colors.white,
-          onPressed: () => context.push('/cart'),
+
+    // Grab these NOW, while this page's context is definitely alive.
+    // The "View Cart" action used to call `context.push` later, from
+    // inside the SnackBar — if the user had already left this page by
+    // then, that context was dead (a likely trigger of the red
+    // "_dependents.isEmpty" assertion screen).
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text('Added ${product.name} to cart'),
+          duration: const Duration(seconds: 2),
+          // Floating + bottom margin keeps it ABOVE this page's sticky
+          // "Add to Cart / Buy Now" bar instead of covering it.
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 96),
+          action: SnackBarAction(
+            label: 'View Cart',
+            textColor: Colors.white,
+            onPressed: () => router.push('/cart'),
+          ),
         ),
-      ),
+      );
+  }
+
+  ScaffoldMessengerState? _messenger;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _messenger = ScaffoldMessenger.of(context);
+  }
+
+  @override
+  void dispose() {
+    // The messenger is app-wide, so without this the "Added to cart —
+    // View Cart" toast kept showing on completely unrelated screens
+    // (e.g. Edit Profile) after leaving this page. Deferred to after
+    // the frame because the widget tree is locked while disposing.
+    final messenger = _messenger;
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => messenger?.clearSnackBars(),
     );
+    super.dispose();
   }
 
   /// Used by "Buy Now" — adds to cart without a confirmation SnackBar,

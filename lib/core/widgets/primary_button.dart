@@ -89,10 +89,27 @@ class PrimaryButton extends StatelessWidget {
         children: [
           Icon(icon, color: color, size: 20),
           const SizedBox(width: 8),
-          Text(label, style: AppTextStyles.buttonLarge.copyWith(color: color)),
+          // Flexible + ellipsis: when this button is given a narrow
+          // explicit width (e.g. width: 90/109/220 elsewhere in the
+          // app) and the icon+label combo doesn't fit, this lets the
+          // label shrink/truncate instead of throwing a RenderFlex
+          // overflow error.
+          Flexible(
+            child: Text(
+              label,
+              style: AppTextStyles.buttonLarge.copyWith(color: color),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
         ],
       );
     }
-    return Text(label, style: AppTextStyles.buttonLarge.copyWith(color: color));
+    return Text(
+      label,
+      style: AppTextStyles.buttonLarge.copyWith(color: color),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
+    );
   }
 }
