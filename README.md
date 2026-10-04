@@ -4,7 +4,7 @@ A full-featured, production-grade e-commerce mobile app built with **Flutter**, 
 
 ---
 
-## ✨ Featuressss
+## ✨ Featureeeeerrrsss
 
 ### Customer App
 - **Onboarding & Auth** — Splash screen, onboarding flow, email/password login & registration, forgot password (Firebase Auth)
