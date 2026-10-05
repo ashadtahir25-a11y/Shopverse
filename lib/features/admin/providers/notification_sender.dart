@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// priceDrops). A user who never touched Settings has no stored choice,
 /// which counts as "yes".
 bool wantsNotification(Map<String, dynamic>? userData, String prefKey) {
+  if (userData?['isDeleted'] == true) return false;
   final prefs = userData?['notificationPrefs'];
   if (prefs is Map) return prefs[prefKey] != false;
   return true;

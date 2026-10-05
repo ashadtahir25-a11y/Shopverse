@@ -20,10 +20,7 @@ const kAvailableRoles = [
 /// staff in the list (showing a stretched role badge). Stripping
 /// everything outside [a-z_] makes the check tolerant of that.
 String _normalizeRole(Object? raw) {
-  final cleaned = (raw is String ? raw : '').toLowerCase().replaceAll(
-    RegExp(r'[^a-z_]'),
-    '',
-  );
+  final cleaned = (raw is String ? raw : '').toLowerCase().replaceAll(RegExp(r'[^a-z_]'), '');
   return kAvailableRoles.contains(cleaned) ? cleaned : 'customer';
 }
 
@@ -80,6 +77,9 @@ final adminCustomersProvider = StreamProvider.autoDispose<List<AdminCustomer>>((
       .map(
         (snapshot) =>
             snapshot.docs
+                // Accounts the customer deleted themselves stay as a blank
+                // document (rules don't allow removing it) — hide them.
+                .where((doc) => doc.data()['isDeleted'] != true)
                 .map((doc) => AdminCustomer.fromFirestore(doc.id, doc.data()))
                 .toList()
               ..sort(

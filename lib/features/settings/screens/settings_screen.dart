@@ -16,6 +16,7 @@ import '../../profile/providers/user_profile_provider.dart';
 import '../../profile/widgets/change_password_sheet.dart';
 import '../widgets/change_email_dialog.dart';
 import '../widgets/change_phone_dialog.dart';
+import '../widgets/delete_account_dialog.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -208,33 +209,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _confirmDeleteAccount() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDimens.radiusLg),
-        ),
-        title: const Text('Delete Account'),
-        content: Text(
-          'This will permanently delete your account and all associated data. This action cannot be undone.',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Delete', style: TextStyle(color: AppColors.error)),
-          ),
-        ],
-      ),
-    );
-  }
+  void _confirmDeleteAccount() => showDeleteAccountDialog(context);
 
   String _themeLabel(ThemeMode mode) => switch (mode) {
     ThemeMode.light => 'Light',

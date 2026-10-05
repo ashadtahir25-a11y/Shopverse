@@ -311,42 +311,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               isLoading: _isLoading,
                               onPressed: _handleLogin,
                             ),
-                            const SizedBox(height: AppDimens.lg),
-                            Row(
-                              children: [
-                                const Expanded(child: Divider()),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
-                                  child: Text(
-                                    AppStrings.orContinueWith,
-                                    style: AppTextStyles.caption,
-                                  ),
-                                ),
-                                const Expanded(child: Divider()),
-                              ],
-                            ),
-                            const SizedBox(height: AppDimens.md),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _SocialButton(
-                                    icon: Icons.g_mobiledata_rounded,
-                                    label: 'Google',
-                                    onTap: () {},
-                                  ),
-                                ),
-                                const SizedBox(width: AppDimens.md),
-                                Expanded(
-                                  child: _SocialButton(
-                                    icon: Icons.apple_rounded,
-                                    label: 'Apple',
-                                    onTap: () {},
-                                  ),
-                                ),
-                              ],
-                            ),
                           ],
                         ),
                       ),
@@ -382,34 +346,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _SocialButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _SocialButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon, color: AppColors.textPrimary),
-      label: Text(
-        label,
-        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
-      ),
-      style: OutlinedButton.styleFrom(
-        side: BorderSide(color: AppColors.border),
-        foregroundColor: AppColors.textPrimary,
       ),
     );
   }
