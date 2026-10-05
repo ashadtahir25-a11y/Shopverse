@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -53,7 +54,7 @@ class MyReviewsScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.star_border_rounded, size: 56, color: AppColors.textMuted),
+                  Icon(Icons.star_border_rounded, size: 56, color: AppColors.textMuted),
                   const SizedBox(height: 12),
                   Text('No reviews yet', style: AppTextStyles.h4),
                   const SizedBox(height: 4),

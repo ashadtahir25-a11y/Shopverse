@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -239,7 +240,7 @@ class _ProductFormDialogState extends ConsumerState<ProductFormDialog> {
                                               width: 72,
                                               height: 72,
                                               color: AppColors.skeleton,
-                                              child: const Icon(
+                                              child: Icon(
                                                 Icons.broken_image_outlined,
                                                 color: AppColors.textMuted,
                                                 size: 20,
@@ -284,7 +285,7 @@ class _ProductFormDialogState extends ConsumerState<ProductFormDialog> {
                                         ),
                                       ),
                                     )
-                                  : const Icon(
+                                  : Icon(
                                       Icons.add_a_photo_outlined,
                                       color: AppColors.primary,
                                     ),

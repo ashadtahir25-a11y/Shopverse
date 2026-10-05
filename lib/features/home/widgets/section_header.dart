@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -20,7 +21,7 @@ class SectionHeader extends StatelessWidget {
             child: Row(
               children: [
                 Text('See All', style: AppTextStyles.link),
-                const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.primary),
+                Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.primary),
               ],
             ),
           ),

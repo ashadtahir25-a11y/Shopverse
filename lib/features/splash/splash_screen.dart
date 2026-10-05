@@ -5,12 +5,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/config/app_flow.dart';
 import '../../core/config/firebase_config.dart';
+import '../../core/providers/currency_provider.dart';
 import '../../core/routes/app_router.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/widgets/aurora_background.dart';
 import '../../core/widgets/glass_card.dart';
-import '../../core/config/app_flow.dart';
 import '../profile/providers/user_profile_provider.dart';
 
 const _kOnboardingSeenKey = 'onboarding_seen';
@@ -50,6 +51,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   /// through to a sensible screen instead of hanging here.
   Future<void> _bootstrap() async {
     final minSplash = Future<void>.delayed(_kMinSplash);
+    // Load the saved currency + cached exchange rates now, so the first
+    // prices on Home already appear in the right currency.
+    ref.read(currencyProvider);
 
     var destination = AppRoutes.login;
     String? notice;
@@ -85,23 +89,31 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       // later. (The old code looked for an "auth_token" preference that
       // nothing ever saved — so every launch ended up on Login.)
       var user = FirebaseAuth.instance.currentUser;
-      user ??= await FirebaseAuth.instance.authStateChanges().first.timeout(
-        const Duration(seconds: 3),
-        onTimeout: () => null,
-      );
+      user ??= await FirebaseAuth.instance
+          .authStateChanges()
+          .first
+          .timeout(const Duration(seconds: 3), onTimeout: () => null);
 
       if (user != null) {
+        // If the person tapped the verification link from Settings -> Change
+        // Email, only a refresh tells this device about the new address.
+        // (A separate non-null variable keeps Dart's null-safety happy.)
+        User current = user;
+        try {
+          await current.reload().timeout(const Duration(seconds: 3));
+          current = FirebaseAuth.instance.currentUser ?? current;
+        } catch (_) {}
         if (!rememberMe) {
           await FirebaseAuth.instance.signOut();
           // Reset so a stale `false` can't sign out a later account.
           await prefs.remove(_kRememberMeKey);
         } else {
-          return _routeForSignedInUser(user);
+          return _routeForSignedInUser(current);
         }
       }
     }
 
-// Not signed in: start the login process. By default that begins
+    // Not signed in: start the login process. By default that begins
     // with the intro screens every time (see kShowOnboardingBeforeLogin).
     return (
       route: loggedOutRoute(onboardingSeen: onboardingSeen),
@@ -130,6 +142,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         );
       }
 
+      // Keep the profile's e-mail equal to the login e-mail (they differ
+      // right after a confirmed e-mail change).
+      final authEmail = user.email;
+      final storedEmail = data?['email'] as String?;
+      if (authEmail != null && data != null && storedEmail?.toLowerCase() != authEmail.toLowerCase()) {
+        FirebaseFirestore.instance.collection('users').doc(user.uid).update({'email': authEmail}).catchError((_) {});
+      }
+
       final role = ((data?['role'] as String?) ?? 'customer')
           .trim()
           .toLowerCase();
@@ -140,7 +160,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       ref
           .read(userProfileProvider.notifier)
           .update(
-            name: data?['fullName'] as String? ?? user.displayName ?? 'User',
+            name:
+                data?['fullName'] as String? ?? user.displayName ?? 'User',
             email: user.email ?? (data?['email'] as String? ?? ''),
             phone: data?['phone'] as String? ?? '',
             avatarUrl: data?['avatarUrl'] as String?,

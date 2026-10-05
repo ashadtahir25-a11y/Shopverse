@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
@@ -32,7 +33,7 @@ class MyReturnsScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.assignment_return_outlined, size: 56, color: AppColors.textMuted),
+                    Icon(Icons.assignment_return_outlined, size: 56, color: AppColors.textMuted),
                     const SizedBox(height: 12),
                     Text('No return requests', style: AppTextStyles.h4),
                     const SizedBox(height: 4),

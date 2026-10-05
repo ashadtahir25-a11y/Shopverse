@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_dimens.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/routes/app_router.dart';
+import '../../core/widgets/price_text.dart';
 import '../../core/widgets/primary_button.dart';
 import '../../core/widgets/product_card.dart';
 import 'models/cart_item_model.dart';
@@ -56,7 +58,7 @@ class CartScreen extends ConsumerWidget {
         AppDimens.md,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         boxShadow: [
           BoxShadow(
             color: AppColors.shadow,
@@ -108,8 +110,7 @@ class _SummaryRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: style),
-          Text(
-            'Rs. ${value.toStringAsFixed(0)}',
+          PriceText(value,
             style: isBold ? style.copyWith(color: AppColors.primary) : style,
           ),
         ],
@@ -168,8 +169,7 @@ class _CartItemTile extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Rs. ${item.product.price.toStringAsFixed(0)}',
+                    PriceText(item.product.price,
                       style: AppTextStyles.price.copyWith(fontSize: 15),
                     ),
                     Row(
@@ -199,7 +199,7 @@ class _CartItemTile extends ConsumerWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.delete_outline_rounded,
               size: 20,
               color: AppColors.textMuted,
@@ -247,7 +247,7 @@ class _EmptyCart extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.shopping_cart_outlined,
             size: 56,
             color: AppColors.textMuted,

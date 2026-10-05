@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../notifications/providers/notification_prefs_provider.dart';
 import '../../product/models/product_model.dart';
+import 'notification_sender.dart';
 
 /// Unlike `productsProvider` (customer-facing, published-only, with a
 /// mock-data fallback), this streams EVERY product regardless of status
@@ -56,6 +58,7 @@ class AdminProductsService {
       if (isNew) {
         await _broadcastToAllUsers(
           type: 'newProduct',
+          prefKey: kPrefPromotions,
           title: 'New Arrival 🆕',
           message: '${product.name} just landed — check it out.',
           productId: id,
@@ -64,6 +67,7 @@ class AdminProductsService {
         final dropped = product.price < previousPrice;
         await _broadcastToAllUsers(
           type: dropped ? 'priceDrop' : 'priceIncrease',
+          prefKey: kPrefPriceDrops,
           title: dropped ? 'Price Drop 📉' : 'Price Update 📈',
           message: dropped
               ? '${product.name} is now Rs. ${product.price.toStringAsFixed(0)} (was Rs. ${previousPrice.toStringAsFixed(0)}).'
@@ -98,13 +102,16 @@ class AdminProductsService {
   /// letter. Blocked accounts are skipped (they can't sign in anyway).
   Future<void> _broadcastToAllUsers({
     required String type,
+    required String prefKey,
     required String title,
     required String message,
     required String productId,
   }) async {
     final snapshot = await _db.collection('users').get();
     final recipients = snapshot.docs
-        .where((doc) => doc.data()['isBlocked'] != true)
+        // Skip blocked accounts AND anyone who switched this kind of
+        // notification off in Settings (see notification_prefs_provider).
+        .where((doc) => doc.data()['isBlocked'] != true && wantsNotification(doc.data(), prefKey))
         .toList();
     if (recipients.isEmpty) return;
 

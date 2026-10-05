@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
@@ -8,6 +9,13 @@ import '../../../core/providers/locale_provider.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/surface_card.dart';
 import '../../../core/data/seed_service.dart';
+import '../../../core/providers/currency_provider.dart';
+import '../../admin/widgets/admin_security_dialog.dart';
+import '../../notifications/providers/notification_prefs_provider.dart';
+import '../../profile/providers/user_profile_provider.dart';
+import '../../profile/widgets/change_password_sheet.dart';
+import '../widgets/change_email_dialog.dart';
+import '../widgets/change_phone_dialog.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -17,13 +25,10 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  bool _orderNotifs = true;
-  bool _promoNotifs = true;
-  bool _priceDropNotifs = false;
-  String _currency = 'PKR';
   bool _isSeeding = false;
 
   Future<void> _seedCatalog() async {
+    if (ref.read(userProfileProvider).role != 'admin') return;
     setState(() => _isSeeding = true);
     try {
       await seedService.seedCatalog();
@@ -41,58 +46,69 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  void _showPicker(
-    String title,
-    List<String> options,
-    String current,
-    ValueChanged<String> onSelect,
-  ) {
-    showModalBottomSheet(
+  void _showCurrencyPicker() {
+    final current = ref.read(currencyProvider).selected.code;
+    showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppDimens.radiusXl),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimens.radiusXl)),
       ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(AppDimens.lg),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: AppTextStyles.h4),
-            const SizedBox(height: 8),
-            RadioGroup<String>(
-              groupValue: current,
-              onChanged: (v) {
-                onSelect(v!);
-                Navigator.pop(context);
-              },
-              child: Column(
-                children: options
-                    .map(
-                      (opt) => RadioListTile<String>(
-                        value: opt,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimens.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Currency', style: AppTextStyles.h4),
+              const SizedBox(height: 8),
+              RadioGroup<String>(
+                groupValue: current,
+                onChanged: (v) {
+                  if (v == null) return;
+                  ref.read(currencyProvider.notifier).selectCode(v);
+                  Navigator.pop(sheetContext);
+                },
+                child: Column(
+                  children: [
+                    for (final c in kCurrencies)
+                      RadioListTile<String>(
+                        value: c.code,
                         activeColor: AppColors.primary,
                         contentPadding: EdgeInsets.zero,
-                        title: Text(opt, style: AppTextStyles.bodyMedium),
+                        title: Text('${c.code} — ${c.name}', style: AppTextStyles.bodyMedium),
                       ),
-                    )
-                    .toList(),
+                  ],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                'Prices are shown in the chosen currency while you browse and in your cart, using the latest exchange rate. '
+                'Checkout, orders and receipts always use PKR — the amount you are actually charged.',
+                style: AppTextStyles.caption.copyWith(color: AppColors.textMuted),
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  void _changePassword() {
+    // The admin account goes through the personal-key protected flow.
+    if (ref.read(userProfileProvider).role == 'admin') {
+      showAdminSecurityDialog(context);
+    } else {
+      showChangePasswordSheet(context);
+    }
   }
 
   void _showThemePicker() {
     final currentMode = ref.read(themeModeProvider);
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppDimens.radiusXl),
@@ -113,7 +129,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Navigator.pop(context);
               },
               child: Column(
-                children: const [
+                children: [
                   RadioListTile<ThemeMode>(
                     value: ThemeMode.light,
                     activeColor: AppColors.primary,
@@ -145,7 +161,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final currentLanguage = ref.read(appLanguageProvider);
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppDimens.radiusXl),
@@ -230,6 +246,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
     final language = ref.watch(appLanguageProvider);
+    final prefs = ref.watch(notificationPrefsProvider);
+    final currency = ref.watch(currencyProvider);
+    final isAdmin = ref.watch(userProfileProvider).role == 'admin';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -241,8 +260,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _SettingsCard(
             children: [
               SwitchListTile(
-                value: _orderNotifs,
-                onChanged: (v) => setState(() => _orderNotifs = v),
+                value: prefs.orderUpdates,
+                onChanged: (v) => ref.read(notificationPrefsProvider.notifier).set(kPrefOrderUpdates, v),
                 activeThumbColor: AppColors.primary,
                 contentPadding: EdgeInsets.zero,
                 title: Text(
@@ -258,8 +277,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const Divider(height: 1),
               SwitchListTile(
-                value: _promoNotifs,
-                onChanged: (v) => setState(() => _promoNotifs = v),
+                value: prefs.promotions,
+                onChanged: (v) => ref.read(notificationPrefsProvider.notifier).set(kPrefPromotions, v),
                 activeThumbColor: AppColors.primary,
                 contentPadding: EdgeInsets.zero,
                 title: Text(
@@ -275,8 +294,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const Divider(height: 1),
               SwitchListTile(
-                value: _priceDropNotifs,
-                onChanged: (v) => setState(() => _priceDropNotifs = v),
+                value: prefs.priceDrops,
+                onChanged: (v) => ref.read(notificationPrefsProvider.notifier).set(kPrefPriceDrops, v),
                 activeThumbColor: AppColors.primary,
                 contentPadding: EdgeInsets.zero,
                 title: Text(
@@ -286,7 +305,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ),
                 subtitle: Text(
-                  'Wishlist item price changes',
+                  'When a product\u2019s price changes',
                   style: AppTextStyles.caption,
                 ),
               ),
@@ -314,7 +333,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         color: AppColors.textSecondary,
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.chevron_right_rounded,
                       color: AppColors.textMuted,
                     ),
@@ -331,27 +350,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
+                subtitle: Text(currency.note, style: AppTextStyles.caption),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      _currency,
+                      currency.selected.code,
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: AppColors.textSecondary,
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.chevron_right_rounded,
                       color: AppColors.textMuted,
                     ),
                   ],
                 ),
-                onTap: () => _showPicker(
-                  'Currency',
-                  ['PKR', 'USD'],
-                  _currency,
-                  (v) => setState(() => _currency = v),
-                ),
+                onTap: _showCurrencyPicker,
               ),
               const Divider(height: 1),
               ListTile(
@@ -371,7 +386,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         color: AppColors.textSecondary,
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.chevron_right_rounded,
                       color: AppColors.textMuted,
                     ),
@@ -394,11 +409,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.chevron_right_rounded,
                   color: AppColors.textMuted,
                 ),
-                onTap: () {},
+                onTap: _changePassword,
               ),
               const Divider(height: 1),
               ListTile(
@@ -409,11 +424,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.chevron_right_rounded,
                   color: AppColors.textMuted,
                 ),
-                onTap: () {},
+                onTap: () => showChangeEmailDialog(context),
               ),
               const Divider(height: 1),
               ListTile(
@@ -424,22 +439,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.chevron_right_rounded,
                   color: AppColors.textMuted,
                 ),
-                onTap: () {},
+                onTap: () => showChangePhoneDialog(context),
               ),
             ],
           ),
 
+          if (isAdmin) ...[
           const SizedBox(height: AppDimens.lg),
           _SectionLabel('Developer'),
           _SettingsCard(
             children: [
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(
+                leading: Icon(
                   Icons.cloud_upload_outlined,
                   color: AppColors.primary,
                 ),
@@ -459,7 +475,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(
+                    : Icon(
                         Icons.chevron_right_rounded,
                         color: AppColors.textMuted,
                       ),
@@ -467,6 +483,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ],
           ),
+          ],
 
           const SizedBox(height: AppDimens.xl),
           PrimaryButton(

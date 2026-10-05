@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimens.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/widgets/price_text.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/product_card.dart';
 import '../../cart/providers/cart_provider.dart';
@@ -104,9 +106,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     // (e.g. Edit Profile) after leaving this page. Deferred to after
     // the frame because the widget tree is locked while disposing.
     final messenger = _messenger;
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => messenger?.clearSnackBars(),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) => messenger?.clearSnackBars());
     super.dispose();
   }
 
@@ -194,16 +194,14 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  Text(
-                                    'Rs. ${product.price.toStringAsFixed(0)}',
+                                  PriceText(product.price,
                                     style: AppTextStyles.h3.copyWith(
                                       color: AppColors.textPrimary,
                                     ),
                                   ),
                                   if (product.hasDiscount) ...[
                                     const SizedBox(width: 10),
-                                    Text(
-                                      'Rs. ${product.originalPrice!.toStringAsFixed(0)}',
+                                    PriceText(product.originalPrice!,
                                       style: AppTextStyles.priceStrike,
                                     ),
                                     const SizedBox(width: 8),
@@ -447,7 +445,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
       ),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.local_shipping_outlined,
             color: AppColors.primary,
             size: 22,
@@ -620,7 +618,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
         AppDimens.md,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         boxShadow: [
           BoxShadow(
             color: AppColors.shadow,

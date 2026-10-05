@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -133,20 +134,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         SnackBar(
           content: Row(
             children: [
-              const Icon(
-                Icons.error_outline_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
+              const Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
               const SizedBox(width: 10),
               Expanded(child: Text(_friendlyAuthError(e.code))),
             ],
           ),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
     } catch (e) {
@@ -198,7 +193,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.shopping_bag_rounded,
                         color: AppColors.primary,
                         size: 32,
@@ -413,7 +408,7 @@ class _SocialButton extends StatelessWidget {
         style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textPrimary),
       ),
       style: OutlinedButton.styleFrom(
-        side: const BorderSide(color: AppColors.border),
+        side: BorderSide(color: AppColors.border),
         foregroundColor: AppColors.textPrimary,
       ),
     );

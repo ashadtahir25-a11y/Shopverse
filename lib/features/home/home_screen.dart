@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:flutter/material.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:flutter_animate/flutter_animate.dart';
@@ -140,7 +141,7 @@ class _HomeHeader extends ConsumerWidget {
       children: [
         Row(
           children: [
-            const Icon(
+            Icon(
               Icons.location_on_outlined,
               size: 18,
               color: AppColors.primary,
@@ -186,7 +187,7 @@ class _HomeHeader extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.search_rounded,
                   size: 20,
                   color: AppColors.textMuted,

@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -207,7 +208,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             style: AppTextStyles.caption,
                           ),
                           secondary: selected
-                              ? const Icon(
+                              ? Icon(
                                   Icons.local_shipping_rounded,
                                   color: AppColors.primary,
                                 )
@@ -233,7 +234,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           ),
                           child: Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.local_offer_rounded,
                                 size: 18,
                                 color: AppColors.primary,
@@ -252,7 +253,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                 onTap: () => ref
                                     .read(checkoutProvider.notifier)
                                     .removeCoupon(),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.close_rounded,
                                   size: 18,
                                   color: AppColors.primary,
@@ -354,7 +355,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           Container(
             padding: const EdgeInsets.all(AppDimens.md),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.surface,
               boxShadow: [
                 BoxShadow(
                   color: AppColors.shadow,

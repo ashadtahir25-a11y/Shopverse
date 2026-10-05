@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
@@ -67,7 +68,7 @@ class HelpSupportScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Icon(Icons.email_outlined, size: 16, color: AppColors.primary),
+                    Icon(Icons.email_outlined, size: 16, color: AppColors.primary),
                     const SizedBox(width: 8),
                     Text('support@shopverse.pk', style: AppTextStyles.bodySmall),
                   ],
@@ -75,7 +76,7 @@ class HelpSupportScreen extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.phone_outlined, size: 16, color: AppColors.primary),
+                    Icon(Icons.phone_outlined, size: 16, color: AppColors.primary),
                     const SizedBox(width: 8),
                     Text('+92 21 1234 5678', style: AppTextStyles.bodySmall),
                   ],

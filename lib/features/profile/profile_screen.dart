@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -276,7 +277,7 @@ class ProfileScreen extends ConsumerWidget {
                                         : AppColors.textPrimary,
                                   ),
                                 ),
-                                trailing: const Icon(
+                                trailing: Icon(
                                   Icons.chevron_right_rounded,
                                   size: 18,
                                   color: AppColors.textMuted,

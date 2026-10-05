@@ -4,13 +4,18 @@ import 'app_colors.dart';
 
 /// Centralized typography. Using 'Plus Jakarta Sans' for a modern,
 /// friendly-but-premium commercial feel (headings) and 'Inter' for body.
+///
+/// The main styles (h1–h4, body*, price) deliberately carry NO colour: the
+/// text then takes the active theme's text colour, so it is dark on light
+/// backgrounds and light on dark ones. Styles that need a specific tone
+/// (caption, link) pick it for the current mode.
 class AppTextStyles {
   AppTextStyles._();
 
   static TextStyle _jakarta({
     required double size,
     required FontWeight weight,
-    Color color = AppColors.textPrimary,
+    Color? color,
     double? height,
     double? letterSpacing,
   }) =>
@@ -25,7 +30,7 @@ class AppTextStyles {
   static TextStyle _inter({
     required double size,
     required FontWeight weight,
-    Color color = AppColors.textPrimary,
+    Color? color,
     double? height,
   }) =>
       GoogleFonts.inter(
@@ -46,18 +51,27 @@ class AppTextStyles {
   static TextStyle bodyMedium = _inter(size: 14, weight: FontWeight.w500, height: 1.5);
   static TextStyle bodySmall = _inter(size: 12, weight: FontWeight.w500, height: 1.4);
 
-  // Labels / Buttons
+  // Labels / Buttons (always white text on a coloured fill)
   static TextStyle buttonLarge = _jakarta(size: 16, weight: FontWeight.w700, color: Colors.white);
   static TextStyle buttonMedium = _jakarta(size: 14, weight: FontWeight.w700, color: Colors.white);
 
-  static TextStyle caption = _inter(size: 11, weight: FontWeight.w500, color: AppColors.textMuted);
+  // Tone-specific styles: one cached copy per mode, picked on access.
+  static final TextStyle _captionLight =
+      _inter(size: 11, weight: FontWeight.w500, color: AppPalette.light.textMuted);
+  static final TextStyle _captionDark =
+      _inter(size: 11, weight: FontWeight.w500, color: AppPalette.dark.textMuted);
+  static TextStyle get caption => AppColors.isDark ? _captionDark : _captionLight;
 
-  static TextStyle price = _jakarta(size: 18, weight: FontWeight.w800, color: AppColors.textPrimary);
+  static TextStyle price = _jakarta(size: 18, weight: FontWeight.w800);
   static TextStyle priceStrike = _inter(
     size: 13,
     weight: FontWeight.w500,
     color: AppColors.strikePrice,
   ).copyWith(decoration: TextDecoration.lineThrough);
 
-  static TextStyle link = _inter(size: 14, weight: FontWeight.w600, color: AppColors.primary);
+  static final TextStyle _linkLight =
+      _inter(size: 14, weight: FontWeight.w600, color: AppPalette.light.primary);
+  static final TextStyle _linkDark =
+      _inter(size: 14, weight: FontWeight.w600, color: AppPalette.dark.primary);
+  static TextStyle get link => AppColors.isDark ? _linkDark : _linkLight;
 }

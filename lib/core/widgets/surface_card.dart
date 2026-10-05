@@ -16,7 +16,7 @@ import '../theme/app_dimens.dart';
 class SurfaceCard extends StatelessWidget {
   final Widget child;
   final double borderRadius;
-  final Color color;
+  final Color? color;
   final Border? border;
   final Clip clipBehavior;
 
@@ -24,7 +24,7 @@ class SurfaceCard extends StatelessWidget {
     super.key,
     required this.child,
     this.borderRadius = AppDimens.radiusLg,
-    this.color = AppColors.surface,
+    this.color,
     this.border,
     this.clipBehavior = Clip.antiAlias,
   });
@@ -40,7 +40,7 @@ class SurfaceCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius),
         clipBehavior: clipBehavior,
         child: Material(
-          color: color,
+          color: color ?? AppColors.surface,
           child: child,
         ),
       ),

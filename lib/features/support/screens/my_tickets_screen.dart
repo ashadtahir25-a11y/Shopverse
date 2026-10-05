@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -31,7 +32,7 @@ class MyTicketsScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.confirmation_number_outlined, size: 56, color: AppColors.textMuted),
+                  Icon(Icons.confirmation_number_outlined, size: 56, color: AppColors.textMuted),
                   const SizedBox(height: 12),
                   Text('No support tickets yet', style: AppTextStyles.h4),
                   const SizedBox(height: 4),
@@ -86,7 +87,7 @@ class MyTicketsScreen extends ConsumerWidget {
                             if (waitingOnYou)
                               Text('New reply', style: AppTextStyles.caption.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700)),
                             const SizedBox(width: 4),
-                            const Icon(Icons.chat_bubble_outline_rounded, size: 14, color: AppColors.textMuted),
+                            Icon(Icons.chat_bubble_outline_rounded, size: 14, color: AppColors.textMuted),
                           ],
                         ),
                       ],

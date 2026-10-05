@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -62,9 +63,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppDimens.radiusXl),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimens.radiusXl)),
       ),
       builder: (context) => SafeArea(
         child: Column(
@@ -118,9 +117,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       if (FirebaseStatus.isInitialized) {
         final uid = FirebaseAuth.instance.currentUser?.uid;
         if (uid != null) {
-          await FirebaseFirestore.instance.collection('users').doc(uid).update({
-            'avatarUrl': url,
-          });
+          await FirebaseFirestore.instance.collection('users').doc(uid).update({'avatarUrl': url});
         }
       }
       ref.read(userProfileProvider.notifier).update(avatarUrl: url);
@@ -153,9 +150,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         }
       }
 
-      ref
-          .read(userProfileProvider.notifier)
-          .update(name: name, email: email, phone: phone);
+      ref.read(userProfileProvider.notifier).update(name: name, email: email, phone: phone);
 
       if (!mounted) return;
       _showMessage('Profile updated');
@@ -186,11 +181,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     onTap: _isUploadingAvatar ? null : _chooseAvatarSource,
                     child: Stack(
                       children: [
-                        UserAvatar(
-                          avatarUrl: profile.avatarUrl,
-                          name: profile.name,
-                          size: 96,
-                        ),
+                        UserAvatar(avatarUrl: profile.avatarUrl, name: profile.name, size: 96),
                         if (_isUploadingAvatar)
                           Positioned.fill(
                             child: DecoratedBox(
@@ -202,10 +193,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                 child: SizedBox(
                                   width: 26,
                                   height: 26,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: Colors.white,
-                                  ),
+                                  child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
                                 ),
                               ),
                             ),
@@ -216,15 +204,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           child: Container(
                             width: 30,
                             height: 30,
-                            decoration: const BoxDecoration(
-                              color: AppColors.primary,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt_rounded,
-                              color: Colors.white,
-                              size: 16,
-                            ),
+                            decoration: BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                            child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 16),
                           ),
                         ),
                       ],
@@ -237,8 +218,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   hint: 'Your name',
                   controller: _nameController,
                   prefixIcon: Icons.person_outline_rounded,
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                 ),
                 const SizedBox(height: AppDimens.md),
                 AppTextField(
@@ -247,8 +227,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   controller: _emailController,
                   prefixIcon: Icons.alternate_email_rounded,
                   keyboardType: TextInputType.emailAddress,
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                 ),
                 const SizedBox(height: AppDimens.md),
                 AppTextField(
@@ -257,15 +236,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   controller: _phoneController,
                   prefixIcon: Icons.phone_outlined,
                   keyboardType: TextInputType.phone,
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                 ),
                 const SizedBox(height: AppDimens.xl),
-                PrimaryButton(
-                  label: 'Save Changes',
-                  isLoading: _isSaving,
-                  onPressed: _save,
-                ),
+                PrimaryButton(label: 'Save Changes', isLoading: _isSaving, onPressed: _save),
               ],
             ),
           ),

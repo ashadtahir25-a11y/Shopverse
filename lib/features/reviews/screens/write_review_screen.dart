@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -247,7 +248,7 @@ class _WriteReviewScreenState extends ConsumerState<WriteReviewScreen> {
                                 ),
                               ),
                             )
-                          : const Icon(
+                          : Icon(
                               Icons.add_a_photo_outlined,
                               color: AppColors.primary,
                             ),

@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -154,7 +155,7 @@ class _ReturnRequestScreenState extends ConsumerState<ReturnRequestScreen> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.inventory_2_outlined,
                               color: AppColors.primary,
                             ),
@@ -301,7 +302,7 @@ class _ReturnRequestScreenState extends ConsumerState<ReturnRequestScreen> {
                                       ),
                                     ),
                                   )
-                                : const Icon(
+                                : Icon(
                                     Icons.add_a_photo_outlined,
                                     color: AppColors.primary,
                                   ),

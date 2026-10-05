@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -27,7 +28,7 @@ class AddressScreen extends ConsumerWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.location_off_outlined, size: 48, color: AppColors.textMuted),
+                        Icon(Icons.location_off_outlined, size: 48, color: AppColors.textMuted),
                         const SizedBox(height: 12),
                         Text('No saved addresses', style: AppTextStyles.h4),
                         const SizedBox(height: 4),
@@ -83,7 +84,7 @@ class AddressScreen extends ConsumerWidget {
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.textMuted),
+                                icon: Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.textMuted),
                                 onPressed: () => ref.read(addressProvider.notifier).remove(addr.id),
                               ),
                             ],

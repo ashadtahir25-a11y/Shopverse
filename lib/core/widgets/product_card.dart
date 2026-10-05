@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'price_text.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_dimens.dart';
 import '../theme/app_text_styles.dart';
@@ -248,15 +249,13 @@ class ProductCard extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 6),
-                      Text(
-                        'Rs. ${product.price.toStringAsFixed(0)}',
+                      PriceText(product.price,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.price,
                       ),
                       if (product.hasDiscount)
-                        Text(
-                          'Rs. ${product.originalPrice!.toStringAsFixed(0)}',
+                        PriceText(product.originalPrice!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.priceStrike,

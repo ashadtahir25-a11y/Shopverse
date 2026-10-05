@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -82,7 +83,7 @@ class _CategoryExpansionTile extends StatelessWidget {
               (sub) => ListTile(
                 contentPadding: const EdgeInsets.only(left: 70, right: 16),
                 title: Text(sub, style: AppTextStyles.bodyMedium),
-                trailing: const Icon(
+                trailing: Icon(
                   Icons.chevron_right_rounded,
                   size: 18,
                   color: AppColors.textMuted,

@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -106,7 +107,7 @@ class _ProductListingScreenState extends ConsumerState<ProductListingScreen> {
   void _openSort() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppDimens.radiusXl),
@@ -271,8 +272,8 @@ class _FilterSheetState extends State<_FilterSheet> {
         top: AppDimens.lg,
         bottom: MediaQuery.of(context).viewInsets.bottom + AppDimens.lg,
       ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppDimens.radiusXl),
         ),

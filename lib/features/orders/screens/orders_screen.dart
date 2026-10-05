@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -22,7 +23,7 @@ class OrdersScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.receipt_long_outlined, size: 56, color: AppColors.textMuted),
+                  Icon(Icons.receipt_long_outlined, size: 56, color: AppColors.textMuted),
                   const SizedBox(height: 12),
                   Text('No orders yet', style: AppTextStyles.h4),
                   const SizedBox(height: 4),
@@ -80,7 +81,7 @@ class OrdersScreen extends ConsumerWidget {
                             Row(
                               children: [
                                 Text('View Details', style: AppTextStyles.link),
-                                const Icon(Icons.chevron_right_rounded, size: 16, color: AppColors.primary),
+                                Icon(Icons.chevron_right_rounded, size: 16, color: AppColors.primary),
                               ],
                             ),
                           ],

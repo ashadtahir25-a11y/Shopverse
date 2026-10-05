@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 import '../theme/app_dimens.dart';
 
 /// A frosted-glass ("glassmorphism") container: blurred backdrop,
@@ -34,7 +35,10 @@ class GlassCard extends StatelessWidget {
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: opacity),
+            // Frosted-glass uses (low opacity, over a gradient) stay white;
+            // near-solid cards (the login/register form) follow the theme,
+            // otherwise dark mode would put light text on a white card.
+            color: (opacity >= 0.5 ? AppColors.surface : Colors.white).withValues(alpha: opacity),
             borderRadius: BorderRadius.circular(borderRadius),
             border: border ??
                 Border.all(color: Colors.white.withValues(alpha: 0.35), width: 1.2),
